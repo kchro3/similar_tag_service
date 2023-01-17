@@ -78,6 +78,10 @@ def main():
         print(f'Test row count: {num_test_rows}')
 
     cotag_df = prepare_cotag_test_data(test_df)
+
+    if args.verbose:
+        print(f'cotag row count: {len(cotag_df)}')
+
     cotag_df.to_json(args.output_data_path, orient="records")
 
 

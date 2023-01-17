@@ -21,7 +21,7 @@ for modeling.
 python train_test_splitter.py \
    --input_data_path=data/preprocessed_data.jsonl \
    --output_data_dir=data/cotag \
-   --hold_out_pct=0.2  # 20% of data is held-out
+   --hold_out_pct=0.1  # 10% of data is held-out
 ```
 
 Another thought was that while I could write a model-agnostic evaluation harness to compare
