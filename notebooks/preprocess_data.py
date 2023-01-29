@@ -36,7 +36,7 @@ def main():
 
     prep_df = (
         raw_df
-        .reset_index()
+        .reset_index(names="post_id")
         .fillna(value={
             "is_reblog": 0.0,
             "root_tags": ''

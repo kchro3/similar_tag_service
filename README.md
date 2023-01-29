@@ -46,7 +46,7 @@ We can benchmark the service and evaluate the end-to-end results with a livetest
 
 100%|██████████| 100/100 [00:11<00:00,  8.76it/s]
 
-Latency (ms)
+Latency (ms)v
 
     p50: 8.41ms
     p75: 9.22ms

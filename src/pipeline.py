@@ -9,7 +9,8 @@ from typing import List
 from fastapi import Depends
 
 from src.candidate_source.candidate_source import SimilarTagCandidateSource
-from src.candidate_source.sample import SampleSimilarTagCandidateSource
+from src.candidate_source.nxgraph_candidate_source import Post2TagGraphSimilarTagCandidateSource
+from src.candidate_source.surprise_candidate_source import KNNSimilarTagCandidateSource
 from src.marshaller.domain_response import SimilarTagDomainResponseMarshaller
 from src.marshaller.request import SimilarTagRequestUnmarshaller
 from src.marshaller.transport_response import SimilarTagTransportResponseMarshaller
@@ -21,13 +22,15 @@ class SimilarTagRecommendationPipeline:
     def __init__(
         self,
         unmarshaller: SimilarTagRequestUnmarshaller = Depends(),
-        sample_candidate_source: SampleSimilarTagCandidateSource = Depends(),
+        knn_candidate_source: KNNSimilarTagCandidateSource = Depends(),
+        post2tag_candidate_source: Post2TagGraphSimilarTagCandidateSource = Depends(),
         domain_marshaller: SimilarTagDomainResponseMarshaller = Depends(),
         transport_marshaller: SimilarTagTransportResponseMarshaller = Depends()
     ):
         self.unmarshaller = unmarshaller
         self.candidate_sources: List[SimilarTagCandidateSource] = [
-            sample_candidate_source,
+            knn_candidate_source,
+            post2tag_candidate_source,
         ]
         self.domain_marshaller = domain_marshaller
         self.transport_marshaller = transport_marshaller

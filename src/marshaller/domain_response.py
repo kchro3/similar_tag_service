@@ -13,7 +13,7 @@ class SimilarTagDomainResponseMarshaller:
     ) -> SimilarTagResponse:
         return SimilarTagResponse(
             scored_tags=[
-                ScoredTag(candidate.tag, candidate.features["sample_score"])
+                ScoredTag(candidate.tag, 0)
                 for i, candidate in enumerate(candidates)
             ]
         )

@@ -1,5 +1,7 @@
 notebooks/.ipynb_checkpoints
 notebooks/*/.ipynb_checkpoints
 notebooks/data/*
+notebooks/export/*
+resources/*
 venv
 .idea/
