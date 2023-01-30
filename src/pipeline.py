@@ -10,12 +10,14 @@ from fastapi import Depends
 
 from src.candidate_source.candidate_source import SimilarTagCandidateSource
 from src.candidate_source.nxgraph_candidate_source import Post2TagGraphSimilarTagCandidateSource
+from src.candidate_source.poptags_ann_candidate_source import PopularTagsANNSimilarTagCandidateSource
 from src.candidate_source.surprise_candidate_source import KNNSimilarTagCandidateSource
 from src.marshaller.domain_response import SimilarTagDomainResponseMarshaller
 from src.marshaller.request import SimilarTagRequestUnmarshaller
 from src.marshaller.transport_response import SimilarTagTransportResponseMarshaller
 from src.model.request import SimilarTagRequest
 from src.model.response import SimilarTagResponse
+from src.selector.topk_selector import TopKSelector
 
 
 class SimilarTagRecommendationPipeline:
@@ -23,14 +25,20 @@ class SimilarTagRecommendationPipeline:
         self,
         unmarshaller: SimilarTagRequestUnmarshaller = Depends(),
         knn_candidate_source: KNNSimilarTagCandidateSource = Depends(),
+        poptags_candidate_source: PopularTagsANNSimilarTagCandidateSource = Depends(),
         post2tag_candidate_source: Post2TagGraphSimilarTagCandidateSource = Depends(),
         domain_marshaller: SimilarTagDomainResponseMarshaller = Depends(),
+        topk_selector: TopKSelector = Depends(),
         transport_marshaller: SimilarTagTransportResponseMarshaller = Depends()
     ):
         self.unmarshaller = unmarshaller
         self.candidate_sources: List[SimilarTagCandidateSource] = [
-            knn_candidate_source,
-            post2tag_candidate_source,
+            # knn_candidate_source,
+            # post2tag_candidate_source,
+            poptags_candidate_source,
+        ]
+        self.selectors = [
+            topk_selector,
         ]
         self.domain_marshaller = domain_marshaller
         self.transport_marshaller = transport_marshaller
@@ -52,8 +60,11 @@ class SimilarTagRecommendationPipeline:
         # TODO: candidate hydration
         # TODO: candidate filtering
         # TODO: candidate ranking
-        # TODO: candidate selection
 
-        response: SimilarTagResponse = self.domain_marshaller.marshal(request, flattened_candidates)
+        selected_candidates = flattened_candidates
+        for selector in self.selectors:
+            selected_candidates = selector.select(request, selected_candidates)
+
+        response: SimilarTagResponse = self.domain_marshaller.marshal(request, selected_candidates)
 
         return self.transport_marshaller.marshal(response)
