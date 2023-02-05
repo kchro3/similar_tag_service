@@ -1,0 +1,7 @@
+txtai:
+    model_path: "sentence-transformers/all-mpnet-base-v2"
+    embedding_path: "resources/popular_tags.txtai"
+    metadata_path: "resources/popular_tags_metadata.pkl"
+surprise:
+    knn_path: "resources/tag2tag_knnz.surprise"
+score_feature: "poptags_score"

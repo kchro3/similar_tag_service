@@ -37,6 +37,9 @@ def parse_args():
         "--input_data_path", help="path to input tags and expected output tags"
     )
     argparser.add_argument(
+        "--output_data_path", help="path to output tags and expected output tags"
+    )
+    argparser.add_argument(
         "--qps", type=int, default=50, help="average queries per sec (hz)"
     )
     argparser.add_argument(
@@ -97,7 +100,7 @@ Response size:
 """)
 
 
-def evaluate_metrics(test_df, port):
+def evaluate_metrics(test_df, port, output_data_path):
     logger.debug(f'Test row count: {len(test_df)}')
     logger.debug(test_df.head())
 
@@ -118,8 +121,11 @@ def evaluate_metrics(test_df, port):
         time.sleep(0.1)  # don't slam the service during warm-up
 
     test_df["result_tags"] = result_tags
+    logger.info(f"Exporting results to {output_data_path}")
+    test_df.to_csv(output_data_path, sep='\t')
 
     jaccard = []
+    has_overlap = 0
     for input_tags, result_tags, output_tags in zip(test_df.input_tags, test_df.result_tags, test_df.output_tags):
         a, b = set(result_tags), set(output_tags)
         j = len(a & b) / len(a | b)
@@ -128,11 +134,13 @@ def evaluate_metrics(test_df, port):
             logger.debug(f"input_tags: {input_tags}")
             logger.debug(f"result_tags: {result_tags}")
             logger.debug(f"output_tags: {output_tags}")
+            has_overlap += 1
         jaccard.append(j)
 
     logger.info(f"""
 Metrics:
  - Average jaccard: {sum(jaccard) / len(jaccard):.02f}
+ - Overlapping ratio: {has_overlap / len(jaccard) * 100:.02f}%
  - think of better metrics...
 """)
 
@@ -153,7 +161,7 @@ def main():
 
     if not args.skip_eval:
         test_sample_df = test_df.sample(args.downsample)
-        evaluate_metrics(test_sample_df, args.port)
+        evaluate_metrics(test_sample_df, args.port, args.output_data_path)
 
     # with tempo!
     count = 0

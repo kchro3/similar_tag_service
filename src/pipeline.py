@@ -6,10 +6,7 @@ Composition layer that orchestrates the different components of the pipeline.
 import asyncio
 from typing import List
 
-from fastapi import Depends
-
 from src.candidate_source.candidate_source import SimilarTagCandidateSource
-from src.candidate_source.nxgraph_candidate_source import Post2TagGraphSimilarTagCandidateSource
 from src.candidate_source.poptags_ann_candidate_source import PopularTagsANNSimilarTagCandidateSource
 from src.candidate_source.surprise_candidate_source import KNNSimilarTagCandidateSource
 from src.marshaller.domain_response import SimilarTagDomainResponseMarshaller
@@ -17,27 +14,34 @@ from src.marshaller.request import SimilarTagRequestUnmarshaller
 from src.marshaller.transport_response import SimilarTagTransportResponseMarshaller
 from src.model.request import SimilarTagRequest
 from src.model.response import SimilarTagResponse
+
+from src.scorer.cosinesim_scorer import CosineSimScorer
+from src.selector.deduping_selector import DedupingSelector
 from src.selector.topk_selector import TopKSelector
 
 
 class SimilarTagRecommendationPipeline:
     def __init__(
         self,
-        unmarshaller: SimilarTagRequestUnmarshaller = Depends(),
-        knn_candidate_source: KNNSimilarTagCandidateSource = Depends(),
-        poptags_candidate_source: PopularTagsANNSimilarTagCandidateSource = Depends(),
-        post2tag_candidate_source: Post2TagGraphSimilarTagCandidateSource = Depends(),
-        domain_marshaller: SimilarTagDomainResponseMarshaller = Depends(),
-        topk_selector: TopKSelector = Depends(),
-        transport_marshaller: SimilarTagTransportResponseMarshaller = Depends()
+        unmarshaller: SimilarTagRequestUnmarshaller,
+        knn_candidate_source: KNNSimilarTagCandidateSource,
+        poptags_candidate_source: PopularTagsANNSimilarTagCandidateSource,
+        cosinesim_scorer: CosineSimScorer,
+        deduping_selector: DedupingSelector,
+        topk_selector: TopKSelector,
+        domain_marshaller: SimilarTagDomainResponseMarshaller,
+        transport_marshaller: SimilarTagTransportResponseMarshaller
     ):
         self.unmarshaller = unmarshaller
         self.candidate_sources: List[SimilarTagCandidateSource] = [
-            # knn_candidate_source,
-            # post2tag_candidate_source,
             poptags_candidate_source,
+            knn_candidate_source,
+        ]
+        self.scorers = [
+            cosinesim_scorer,
         ]
         self.selectors = [
+            deduping_selector,
             topk_selector,
         ]
         self.domain_marshaller = domain_marshaller
@@ -57,11 +61,11 @@ class SimilarTagRecommendationPipeline:
         for candidates in candidate_source_results:
             flattened_candidates += candidates
 
-        # TODO: candidate hydration
-        # TODO: candidate filtering
-        # TODO: candidate ranking
+        scored_candidates = flattened_candidates
+        for scorer in self.scorers:
+            scored_candidates = scorer.score(request, scored_candidates)
 
-        selected_candidates = flattened_candidates
+        selected_candidates = scored_candidates
         for selector in self.selectors:
             selected_candidates = selector.select(request, selected_candidates)
 

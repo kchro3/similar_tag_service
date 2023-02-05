@@ -11,18 +11,13 @@ from src.model.request import SimilarTagRequest
 logger = logging.getLogger("uvicorn")
 
 
-@lru_cache
-def _load_knn(knn_path):
-    logger.info(f"Loading {knn_path}...")
-    _, knn = surprise.dump.load(knn_path)
-    logger.info(f"Loaded {knn_path}...")
-    return knn
-
-
 class KNNSimilarTagCandidateSource(SimilarTagCandidateSource):
-    def __init__(self, knn_path="resources/tag2tag_knnz.surprise"):
-        self.knn = _load_knn(knn_path)
+    def __init__(self, knn_path):
+        logger.info(f"Loading {knn_path}...")
+        _, self.knn = surprise.dump.load(knn_path)
+        logger.info(f"Loaded {knn_path}...")
 
+    @lru_cache
     def get_neighbors(self, tag, k=5):
         """Surprise represents the users and items with internal IDs (iid)."""
         try:

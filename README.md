@@ -14,8 +14,8 @@ on `http://localhost:8000`:
 To run the service in Docker, I can run these commands:
 
 ```commandline
-➜ docker build -t similar-tag-service .
-➜ docker run --rm -t -p 8000:80 similar-tag-service
+➜ docker build -t kchro3/similar-tag-service:latest . 
+➜ docker run --rm -t -p 8000:80 kchro3/similar-tag-service
 ```
 
 ## Testing locally
@@ -36,7 +36,7 @@ I'm using Jupyter lab to investigate the datasets.
 We can benchmark the service and evaluate the end-to-end results with a livetest.
 
 ```commandline
-➜ docker run --rm -t -p 8000:80 similar-tag-service
+➜ docker run --rm -t -p 8000:80 kchro3/similar-tag-service
 ➜ python test/livetest/main.py \
     --input_data_path=../../notebooks/data/cotag/gold.jsonl \
     --port=8000 \

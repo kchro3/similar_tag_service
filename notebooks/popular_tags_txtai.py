@@ -37,7 +37,7 @@ def main(
     output_metadata_path: str,
     embedding_path: str = "sentence-transformers/all-mpnet-base-v2",
     batch_size: int = 1000,
-    max_tags: int = 100000,
+    max_tags: int = 10000,
 ):
     logger.info(f"Loading embeddings from {embedding_path}...")
     embeddings = Embeddings({

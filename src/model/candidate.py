@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import Mapping, Any
+from typing import Any
 
 
 @dataclass
 class SimilarTagCandidate:
     tag: str
-    features: Mapping[str, Any]
+    features: dict[str, Any]
